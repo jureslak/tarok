@@ -181,7 +181,7 @@ class UserIgralec:
         self.message_label = Label(self.root, text='Pobral/a: '+self.root.game.order[zmagovalec],
                 font=('Helvetica',15),bg='green')
         self.nextround_but = Button(self.root, text='OK',width=5, command=self.next_round)
-        self.message_label.place(x=340, y=270)
+        self.message_label.place(x=330, y=270)
         self.nextround_but.place(x=900,y=700)
 
 

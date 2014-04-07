@@ -128,7 +128,7 @@ class GUI(Tk):
         self.draw_players()
         
         self.krog_num = 0 # kateri krog
-        self.coor = [{'x':370,'y':330},{'x':230,'y':300},{'x':520,'y':270},{'x':660,'y':300}]
+        self.coor = [{'x':370,'y':340},{'x':230,'y':310},{'x':520,'y':270},{'x':660,'y':300}]
 
         self.start()
         self.mainloop()
@@ -168,7 +168,7 @@ class GUI(Tk):
         
         coor = [(100,550,60,0),(100,50,0,20),(300,50,30,0),(800,50,0,20)] # (x,y,dx,dy)
         for j,pl in enumerate(self.draw_order):
-            for i, card in enumerate(self.game.karte[pl]):
+            for i, card in enumerate(sorted(self.game.karte[pl])):
                 if pl == 'Uporabnik':
                     self.karte_img[card] = Button(image=self.images[card],anchor=NW, command=self.click_card(card))
                     self.karte_img[card].place(x=coor[j][0]+i*coor[j][2],y=coor[j][1]+i*coor[j][3])

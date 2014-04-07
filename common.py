@@ -30,7 +30,16 @@ class Karta:
     
     def __repr__(self):
         return '%s%d' % (barvaVString(self.barva),self.vrednost)
-    
+
+    def __lt__(self, other):
+        if self.barva == other.barva:
+            if self.barva == TAROK:
+                return self.vrednost < other.vrednost
+            else:
+                return self.vrednost > other.vrednost
+        b = [TAROK, SRCE, PIK, KARO, KRIZ]
+        return b.index(self.barva) < b.index(other.barva)
+
     def __eq__(self, other):
         if isinstance(other, Karta):
             return self.barva==other.barva and self.vrednost==other.vrednost
