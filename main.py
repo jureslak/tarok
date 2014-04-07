@@ -1,4 +1,5 @@
-from igralec import Igralec,UserIgralec
+from igralec import Igralec
+from igralecgui import UserIgralec
 from random import shuffle, randint, choice
 from common import *
 
@@ -28,7 +29,7 @@ class Game:
         return k
 
     def zacniRundo(self):
-        self.oder = self.order[1:]+[self.order[0]]
+        self.order = self.order[1:]+[self.order[0]]
         k = self.k
         tipi = [self.igralci[i].zacniIgro(c) for i,c in zip(self.order,k[1:])]
 
@@ -57,16 +58,42 @@ class Game:
         for i,n in enumerate(self.order):
             self.igralci[self.order[i]].zacniRedniDel(i,idx,igra,ostanek,iztalona)
         self.curorder = [0,1,2,3]
+        self.curorder = self.curorder[idx:] + self.curorder[:idx]
        
-    def krog(self):
+    def krog_before_player(self):
+        self.namizi = []
         curorder = self.curorder
-        namizi = []
-        for i in curorder:
-            name = self.order[i]
-            namizi.append((i,self.igralci[name].vrziKarto(list(karte[i]),namizi,curorder[0])))
 
-        zmagal = self.kdo_je_zmagal(namizi)
-        koncna_miza = [x[0] for x in namizi]
+        for i in curorder:
+            self.curplayer = i 
+            name = self.order[i]
+            namizi = [x for x, y in self.namizi]
+        
+            vrgel = self.igralci[name].vrziKarto(list(self.karte[name]),namizi,curorder[0])
+            if name == 'Uporabnik':
+                return
+            self.namizi.append((vrgel, i))
+            self.karte[name].remove(vrgel)
+                
+
+    def krog_after_player(self, karta):
+        curorder = self.curorder
+        self.karte['Uporabnik'].remove(karta)
+        self.namizi.append((karta, self.curplayer))
+
+        idx = self.curorder.index(self.curplayer)
+
+        for i in curorder[idx+1:]:
+            name = self.order[i]
+            namizi = [x for x, y in self.namizi]
+        
+            vrgel = self.igralci[name].vrziKarto(list(self.karte[name]),namizi,curorder[0])
+            self.namizi.append((vrgel,i))
+            self.karte[name].remove(vrgel)
+
+        print(self.namizi)
+        zmagal = self.kdo_je_zmagal(self.namizi)
+        koncna_miza = [x[0] for x in self.namizi]
 
         for i in curorder:
             name = self.order[i]
@@ -75,23 +102,16 @@ class Game:
         zidx = curorder.index(zmagal)
         self.curorder = curorder[zidx:] + curorder[:zidx]
 
-    @staticmethod    
-    def najvisja(miza, barva):
+    def najvisja(self, miza, barva):
             potencialne = [karta for karta in miza if karta[0].barva == barva]
             if len(potencialne) == 0: return None
             return max(potencialne, key = lambda x: x[0].vrednost)[1]
 
-    @staticmethod
-    def kdo_je_zmagal(miza):
-            ip = najvisja(miza, miza[0][0].barva)
-            it = najvisja(miza, TAROK)
+    def kdo_je_zmagal(self, miza):
+            ip = self.najvisja(miza, miza[0][0].barva)
+            it = self.najvisja(miza, TAROK)
             return it if it!=None else ip
             
-
-#  g = Game()
-#  g.deliRundo()
-#  g.zacniRundo()
-
 from tkinter import *
 class GUI(Tk):
     def __init__(self):
@@ -103,19 +123,27 @@ class GUI(Tk):
         print (list(self.images))
 
         self.game = Game(self)
-        self.stage = 'init'
         self.karte_img = {}
 
         self.draw_players()
-        self.bind('<FocusIn>', self.start)
+        
+        self.krog_num = 0 # kateri krog
+        self.coor = [{'x':370,'y':330},{'x':230,'y':300},{'x':520,'y':270},{'x':660,'y':300}]
 
+        self.start()
         self.mainloop()
 
     def start(self, *args):
-        if self.stage == 'init':
-            print("game started")
-            self.game.deliRundo()
-            self.game.zacniRundo()
+        print("game started")
+        self.game.deliRundo()
+        self.game.zacniRundo()
+
+    def main_game(self):
+        self.krog_num += 1
+        if self.krog_num > 12:
+            self.konec()
+            return
+        self.game.krog_before_player()
 
     def load_images(self):
         self.images = {}
@@ -142,11 +170,17 @@ class GUI(Tk):
         for j,pl in enumerate(self.draw_order):
             for i, card in enumerate(self.game.karte[pl]):
                 if pl == 'Uporabnik':
-                    self.karte_img[card] = Button(image=self.images[card],anchor=NW)
+                    self.karte_img[card] = Button(image=self.images[card],anchor=NW, command=self.click_card(card))
                     self.karte_img[card].place(x=coor[j][0]+i*coor[j][2],y=coor[j][1]+i*coor[j][3])
                 else:
                     self.karte_img[card] = Label(image=self.images['BG'],anchor=NW)
                     self.karte_img[card].place(x=coor[j][0]+i*coor[j][2],y=coor[j][1]+i*coor[j][3])
-                
+   
+    def click_card(self, card):
+        def f():
+            veljavne = veljavnePoteze(self.game.karte['Uporabnik'],[x for x,y in self.game.namizi])
+            if card in veljavne:
+                self.game.krog_after_player(card)
+        return f
 
 g = GUI()
