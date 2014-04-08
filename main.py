@@ -16,6 +16,7 @@ class Game:
 
         self.k = self.deliRundo()
         self.karte = dict(zip(self.order,map(set,self.k[1:])))
+        self.pobrane = {i:set() for i in self.igralci}
 
     @staticmethod
     def deliRundo():
@@ -52,8 +53,23 @@ class Game:
         print('ostanek',ostanek)
         self.karte[glavni] |= set(iztalona)
         self.karte[glavni] -= set(izroke)
+        self.pobrane[glavni] |= set(izroke)
+        self.preostanek_talona = ostanek # shranimo za stetje
+        self.igra = igra
+
+
+        kralj = Karta(igra.klicaniKralj, 14)
+        if igra.solo:
+            self.soigralec = glavni
+        else:
+            try:
+                self.soigralec = [name for name in self.order if kralj in self.karte[name]][0]
+            except:
+                self.soigralec = glavni
+        self.glavni = glavni
+
         print (self.karte['Uporabnik'])
-        
+       
         print ('kazem stanje pred zacetkom')
         for i,n in enumerate(self.order):
             self.igralci[self.order[i]].zacniRedniDel(i,idx,igra,ostanek,iztalona)
@@ -94,6 +110,7 @@ class Game:
         print(self.namizi)
         zmagal = self.kdo_je_zmagal(self.namizi)
         koncna_miza = [x[0] for x in self.namizi]
+        self.pobrane[self.order[zmagal]] |= set(koncna_miza)
 
         for i in curorder:
             name = self.order[i]
@@ -101,6 +118,16 @@ class Game:
 
         zidx = curorder.index(zmagal)
         self.curorder = curorder[zidx:] + curorder[:zidx]
+
+    def stetje_tock(self):
+        self.glavni = set([self.glavni, self.soigralec])
+        self.ostali = set(self.order) - self.glavni
+        
+        # tocke
+        self.tA = sum([steviloTock(self.pobrane[idx]) for idx in self.glavni])
+        self.tB = sum([steviloTock(self.pobrane[idx]) for idx in self.ostali]) + steviloTock(self.preostanek_talona)
+        tt = (self.tA - self.tB)//2 + (1 if self.tA > self.tB else -1) * self.igra.vrednost()
+        self.tocke = {idx: (tt if idx in self.glavni else 0) for idx in self.order}
 
     def najvisja(self, miza, barva):
             potencialne = [karta for karta in miza if karta[0].barva == barva]
@@ -140,7 +167,7 @@ class GUI(Tk):
 
     def main_game(self):
         self.krog_num += 1
-        if self.krog_num > 12:
+        if self.krog_num > 2:
             self.konec()
             return
         self.game.krog_before_player()
@@ -158,10 +185,12 @@ class GUI(Tk):
         self.draw_order = self.game.order[uidx:] + self.game.order[:uidx]
         self.karte_img = {}
 
+        self.ld = Label(self, text=self.draw_order[0],bg='green',font=('Helvetica',16))
         self.ll = Label(self, text=self.draw_order[1],bg='green',font=('Helvetica',16))
         self.lu = Label(self, text=self.draw_order[2],bg='green',font=('Helvetica',16))
         self.lr = Label(self, text=self.draw_order[3],bg='green',font=('Helvetica',16))
 
+        self.ld.place(x=405,y=750)
         self.ll.place(x=15,y=300)
         self.lu.place(x=480,y=10)
         self.lr.place(x=920,y=300)
@@ -182,5 +211,22 @@ class GUI(Tk):
             if card in veljavne:
                 self.game.krog_after_player(card)
         return f
+
+    def konec(self):
+        self.game.stetje_tock()
+        self.konec_l = Label(self, text='KONEC',bg='green',font=('Helvetica',24))
+        self.konec_l.place(x=400,y=300)
+
+        self.labels = []
+        for j, igr in enumerate(self.game.order):
+            l = Label(self, text='{0}: {1:.0f}'.format(igr, steviloTock(self.game.pobrane[igr])),bg='green',font=('Helvetica',16))
+            l.place(x=300, y=350+50*j)
+            m = Label(self, text='{1:.0f}'.format(igr, self.game.tocke[igr]),bg='green',font=('Helvetica',16))
+            m.place(x=450, y=350+50*j)
+            self.labels.append(l)
+            self.labels.append(m)
+       # self.tocke = Label(self, text=str(self.game.tocke))
+       # self.tocke.place(x=400, y=500)
+        
 
 g = GUI()
