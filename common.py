@@ -24,9 +24,9 @@ class Karta:
             
     def stTock(self):
         if self.barva != TAROK:
-            return {11:4/3,12:7/3,13:10/3,14:13/3}.get(self.vrednost, 1/3)
+            return {11:4,12:7,13:10,14:13}.get(self.vrednost, 1)
         else:
-            return 13/3 if self.vrednost in (1,21,22) else 1
+            return 13 if self.vrednost in (1,21,22) else 1
     
     def __repr__(self):
         return '%s%d' % (barvaVString(self.barva),self.vrednost)
@@ -67,7 +67,7 @@ class TipIgre:
             self.parse(args[0])
     
     def vrednost(self):
-        return 30*int(self.solo) + 10*(4-self.stZalozenihKart)
+        return 90*int(self.solo) + 30*(4-self.stZalozenihKart)
     
     def __repr__(self):
         # primeri: S1K, N3X, N2P, ...

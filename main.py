@@ -127,7 +127,7 @@ class Game:
         self.tA = sum([steviloTock(self.pobrane[idx]) for idx in self.glavni])
         self.tB = sum([steviloTock(self.pobrane[idx]) for idx in self.ostali]) + steviloTock(self.preostanek_talona)
         tt = (self.tA - self.tB)//2 + (1 if self.tA > self.tB else -1) * self.igra.vrednost()
-        self.tocke = {idx: (tt if idx in self.glavni else 0) for idx in self.order}
+        self.tocke = {idx: (tt//3 if idx in self.glavni else 0) for idx in self.order}
 
     def najvisja(self, miza, barva):
             potencialne = [karta for karta in miza if karta[0].barva == barva]
