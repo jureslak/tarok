@@ -104,7 +104,7 @@ class UserIgralec:
         for x in self.talon_but: self.talon_but[x].destroy()
         for x in self.karte_but: self.karte_but[x].destroy()
 
-        for j, card in enumerate(self.karte):
+        for j, card in enumerate(sorted(self.karte)):
             self.karte_but[card] = Button(self.top, image=self.root.images[card],anchor=NW,command=self.zaloziKarto(card))
             self.karte_but[card].place(y=550,x=50+j*50)
         
@@ -142,7 +142,7 @@ class UserIgralec:
         for j, card in enumerate(ostanek):
             self.talon_lab.append(Label(self.root, image=self.root.images[card],anchor=NW))
             self.talon_lab[-1].place(y=320,x=len(pobrane)*50+400+50*j)
-        
+
         for j, card in enumerate(pobrane):
             self.talon_lab.append(Label(self.root, image=self.root.images[card],anchor=NW))
             self.talon_lab[-1].place(y=320,x=250+50*j)
@@ -150,21 +150,27 @@ class UserIgralec:
         self.b = Button(self.root,text='OK',width=5,command=self.startgame)
         self.b.place(x=900,y=700)
 
+        self.root.bind("<Return>",self.startgame)
+        self.root.bind("<space>",self.startgame)
+
         self.root.draw_players()
 
-    def startgame(self):
+    def startgame(self, *args):
         self.l.destroy()
         self.l1.destroy()
         self.l2.destroy()
         self.b.destroy()
         for x in self.talon_lab: x.destroy()
+        self.root.unbind("<Return>")
+        self.root.unbind("<space>")
         self.root.main_game()
 
     def vrziKarto(self, karte, namizi, prvi):
-        self.userlock = 'lock'
         print ("mecem karto")
-        self.root.draw_players()
+        self.root.draw_players(True)
         print (self.root.draw_order)
+        self.na_vrsti = Label(self.root, text=': na vrsti ste.',bg='green',font=('Helvetica',16))
+        self.na_vrsti.place(x=500,y=750)
         self.ontable = []
         for card, pl in zip(namizi, self.root.game.curorder):
             didx = self.root.draw_order.index(self.root.game.order[pl])
@@ -172,6 +178,7 @@ class UserIgralec:
             self.ontable[-1].place(**self.root.coor[didx])
 
     def konecKroga(self, zmagal, prvi, zmagovalec, namizi):
+        self.na_vrsti.destroy()
         for card, pl in zip(namizi, self.root.game.curorder):
             didx = self.root.draw_order.index(self.root.game.order[pl])
             self.ontable.append(Label(self.root, image=self.root.images[card]))
@@ -181,12 +188,15 @@ class UserIgralec:
         self.message_label = Label(self.root, text='Pobral/a: '+self.root.game.order[zmagovalec],
                 font=('Helvetica',15),bg='green')
         self.nextround_but = Button(self.root, text='OK',width=5, command=self.next_round)
+        self.root.bind("<Return>",self.next_round)
+        self.root.bind("<space>",self.next_round)
         self.message_label.place(x=330, y=270)
         self.nextround_but.place(x=900,y=700)
 
-
-    def next_round(self):
+    def next_round(self, *args):
         self.nextround_but.destroy()
         self.message_label.destroy()
         for x in self.ontable: x.destroy()
+        self.root.unbind("<Return>")
+        self.root.unbind("<space>")
         self.root.main_game()
