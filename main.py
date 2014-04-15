@@ -167,7 +167,7 @@ class GUI(Tk):
 
     def main_game(self):
         self.krog_num += 1
-        if self.krog_num > 2:
+        if self.krog_num > 12:
             self.konec()
             return
         self.game.krog_before_player()
@@ -178,7 +178,7 @@ class GUI(Tk):
             self.images[i] = PhotoImage(file='images/{}.ppm'.format(i))
         self.images["BG"] = PhotoImage(file='images/BG.ppm')
 
-    def draw_players(self):
+    def draw_players(self,enabled_buttons=False):
         for x in self.karte_img: self.karte_img[x].destroy()
 
         uidx = self.game.order.index('Uporabnik')
@@ -199,30 +199,40 @@ class GUI(Tk):
         for j,pl in enumerate(self.draw_order):
             for i, card in enumerate(sorted(self.game.karte[pl])):
                 if pl == 'Uporabnik':
-                    self.karte_img[card] = Button(image=self.images[card],anchor=NW, command=self.click_card(card))
+                    self.karte_img[card] = Button(image=self.images[card],anchor=NW, command=self.click_card(card, enabled_buttons))
                     self.karte_img[card].place(x=coor[j][0]+i*coor[j][2],y=coor[j][1]+i*coor[j][3])
                 else:
                     self.karte_img[card] = Label(image=self.images['BG'],anchor=NW)
                     self.karte_img[card].place(x=coor[j][0]+i*coor[j][2],y=coor[j][1]+i*coor[j][3])
    
-    def click_card(self, card):
-        def f():
-            veljavne = veljavnePoteze(self.game.karte['Uporabnik'],[x for x,y in self.game.namizi])
-            if card in veljavne:
-                self.game.krog_after_player(card)
+    def click_card(self, card, enabled):
+        if enabled:
+            def f():
+                veljavne = veljavnePoteze(self.game.karte['Uporabnik'],[x for x,y in self.game.namizi])
+                if card in veljavne:
+                    self.game.krog_after_player(card)
+        else:
+            def f(): pass
         return f
 
     def konec(self):
+        print ("konec")
         self.game.stetje_tock()
         self.konec_l = Label(self, text='KONEC',bg='green',font=('Helvetica',24))
-        self.konec_l.place(x=400,y=300)
+        self.konec_l.place(x=410,y=300)
+        tl = Label(self, text='točke',bg='green',font=('Helvetica',16))
+        pl = Label(self, text='piše',bg='green',font=('Helvetica',16))
+        tl.place(x=400,y=350)
+        pl.place(x=480,y=350)        
 
         self.labels = []
         for j, igr in enumerate(self.game.order):
-            l = Label(self, text='{0}: {1:.0f}'.format(igr, steviloTock(self.game.pobrane[igr])),bg='green',font=('Helvetica',16))
-            l.place(x=300, y=350+50*j)
-            m = Label(self, text='{1:.0f}'.format(igr, self.game.tocke[igr]),bg='green',font=('Helvetica',16))
-            m.place(x=450, y=350+50*j)
+            l = Label(self, text='{1}{0}:'.format(igr, "*" if igr in self.game.glavni else ''),bg='green',font=('Helvetica',16))
+            l.place(x=300, y=380+50*j)
+            n = Label(self, text='{0:.0f}'.format(steviloTock(self.game.pobrane[igr])//3),bg='green',font=('Helvetica',16))
+            n.place(x=420, y=380+50*j)
+            m = Label(self, text='{0:.0f}'.format(self.game.tocke[igr]),bg='green',font=('Helvetica',16))
+            m.place(x=490, y=380+50*j)
             self.labels.append(l)
             self.labels.append(m)
        # self.tocke = Label(self, text=str(self.game.tocke))
