@@ -12,14 +12,11 @@ class Game:
             'Uporabnik': UserIgralec('user',root),
         }
         self.order = list(self.igralci)
+        self.total_tocke = {i:0 for i in self.igralci}
         shuffle(self.order)
 
-        self.k = self.deliRundo()
-        self.karte = dict(zip(self.order,map(set,self.k[1:])))
-        self.pobrane = {i:set() for i in self.igralci}
-
-    @staticmethod
-    def deliRundo():
+    #@staticmethod
+    def deliRundo(self):
         karte = vseKarte()
         shuffle(karte)
 
@@ -27,10 +24,13 @@ class Game:
         while any(all(t.barva != TAROK for t in c) for c in k[1:]): # brez taroka ni taroka
             shuffle(karte)
             k = (karte[:6],karte[6:6+12],karte[6+12:6+24],karte[6+24:6+36],karte[6+36:6+48]) 
-        return k
+        self.k = k
+        self.karte = dict(zip(self.order,map(set,self.k[1:])))
 
     def zacniRundo(self):
+        self.pobrane = {i:set() for i in self.igralci}
         self.order = self.order[1:]+[self.order[0]]
+
         k = self.k
         tipi = [self.igralci[i].zacniIgro(c) for i,c in zip(self.order,k[1:])]
 
@@ -128,6 +128,7 @@ class Game:
         self.tB = sum([steviloTock(self.pobrane[idx]) for idx in self.ostali]) + steviloTock(self.preostanek_talona)
         tt = (self.tA - self.tB)//2 + (1 if self.tA > self.tB else -1) * self.igra.vrednost()
         self.tocke = {idx: (tt//3 if idx in self.glavni else 0) for idx in self.order}
+        for i in self.order: self.total_tocke[i] += self.tocke[i]
 
     def najvisja(self, miza, barva):
             potencialne = [karta for karta in miza if karta[0].barva == barva]
@@ -147,22 +148,20 @@ class GUI(Tk):
         self.title('Tarok')
         self.geometry('1000x800+100+100')
         self.load_images()
-        print (list(self.images))
+               
+        self.karte_img = {}
+        self.coor = [{'x':370,'y':340},{'x':230,'y':310},{'x':520,'y':270},{'x':660,'y':300}]
+        self.sss = dict(background='green',font=('Helvetica', 16))
 
         self.game = Game(self)
-        self.karte_img = {}
-
-        self.draw_players()
-        
-        self.krog_num = 0 # kateri krog
-        self.coor = [{'x':370,'y':340},{'x':230,'y':310},{'x':520,'y':270},{'x':660,'y':300}]
-
         self.start()
         self.mainloop()
 
     def start(self, *args):
         print("game started")
+        self.krog_num = 0
         self.game.deliRundo()
+        self.draw_players()
         self.game.zacniRundo()
 
     def main_game(self):
@@ -185,10 +184,10 @@ class GUI(Tk):
         self.draw_order = self.game.order[uidx:] + self.game.order[:uidx]
         self.karte_img = {}
 
-        self.ld = Label(self, text=self.draw_order[0],bg='green',font=('Helvetica',16))
-        self.ll = Label(self, text=self.draw_order[1],bg='green',font=('Helvetica',16))
-        self.lu = Label(self, text=self.draw_order[2],bg='green',font=('Helvetica',16))
-        self.lr = Label(self, text=self.draw_order[3],bg='green',font=('Helvetica',16))
+        self.ld = Label(self, text=self.draw_order[0],**self.sss)
+        self.ll = Label(self, text=self.draw_order[1],**self.sss)
+        self.lu = Label(self, text=self.draw_order[2],**self.sss)
+        self.lr = Label(self, text=self.draw_order[3],**self.sss)
 
         self.ld.place(x=405,y=750)
         self.ll.place(x=15,y=300)
@@ -217,24 +216,46 @@ class GUI(Tk):
 
     def konec(self):
         print ("konec")
+        self.labels = []
         self.game.stetje_tock()
-        self.konec_l = Label(self, text='KONEC',bg='green',font=('Helvetica',24))
-        self.konec_l.place(x=410,y=300)
-        tl = Label(self, text='točke',bg='green',font=('Helvetica',16))
-        pl = Label(self, text='piše',bg='green',font=('Helvetica',16))
+        konec_l = Label(self, text='KONEC',bg='green',font=('Helvetica',24))
+        konec_l.place(x=410,y=300)
+        tl = Label(self, text='točke',**self.sss)
+        pl = Label(self, text='piše',**self.sss)
+        totl = Label(self, text='skupaj',**self.sss)
         tl.place(x=400,y=350)
-        pl.place(x=480,y=350)        
+        pl.place(x=480,y=350)
+        totl.place(x=550,y=350)
 
         self.labels = []
         for j, igr in enumerate(self.game.order):
-            l = Label(self, text='{1}{0}:'.format(igr, "*" if igr in self.game.glavni else ''),bg='green',font=('Helvetica',16))
+            l = Label(self, text='{1}{0}:'.format(igr, "*" if igr in self.game.glavni else ''),**self.sss)
             l.place(x=300, y=380+50*j)
-            n = Label(self, text='{0:.0f}'.format(steviloTock(self.game.pobrane[igr])//3),bg='green',font=('Helvetica',16))
+            n = Label(self, text='{0:.0f}'.format(steviloTock(self.game.pobrane[igr])//3),**self.sss)
             n.place(x=420, y=380+50*j)
-            m = Label(self, text='{0:.0f}'.format(self.game.tocke[igr]),bg='green',font=('Helvetica',16))
+            m = Label(self, text='{0:.0f}'.format(self.game.tocke[igr]),**self.sss)
             m.place(x=490, y=380+50*j)
-            self.labels.append(l)
-            self.labels.append(m)
+            k = Label(self, text='{0:.0f}'.format(self.game.total_tocke[igr]),**self.sss)
+            k.place(x=560, y=380+50*j)
+            self.labels.extend((k,l,m,n))
+        tal_l = Label(self,text='Ost. talona:',**self.sss)
+        tal_l.place(x=300,y=380+50*4)
+        tal_tl = Label(self,text=steviloTock(self.game.preostanek_talona)//3, **self.sss)
+        tal_tl.place(x=420, y=380+50*4)
+
+        self.endwidgets = [konec_l,pl,tl,tal_l,tal_tl,totl]
+
+        self.restart_but = Button(self, text='Nova igra', command=self.nova_igra)
+        self.bind('<Return>', self.nova_igra)
+        self.bind('<space>', self.nova_igra)
+        self.restart_but.place(x=900,y=700)
+        
+    def nova_igra(self):
+        for x in self.endwidgets + self.labels: x.destroy()
+        self.restart_but.destroy()
+        self.unbind("<Return>")
+        self.unbind("<space>")
+        self.start()
        # self.tocke = Label(self, text=str(self.game.tocke))
        # self.tocke.place(x=400, y=500)
         
