@@ -35,7 +35,7 @@ class UserIgralec:
         self.top.transient(self.root)
      #   self.top.overrideredirect(True)
         self.top['bg'] = 'green'
-        self.top.protocol('WM_DELETE_WINDOW', lambda: 1)
+#          self.top.protocol('WM_DELETE_WINDOW', self.close)
 
         self.izbira_igre_but = {}
         for x, (i, j) in enumerate(product(['KARO','PIK','SRCE','KRIZ','SOLO'],['1','2','3'])):
@@ -45,6 +45,10 @@ class UserIgralec:
         self.top.wait_window(self.top)
         return self.return_v
 
+    def close(self, *args):
+        self.top.destroy()
+        self.root.destroy()
+
     def zalozi(self, karte, talon):
         self.top = Toplevel(self.root)
         self.top.title('Zalaganje')
@@ -53,7 +57,7 @@ class UserIgralec:
         self.top.grab_set()
         self.top.focus_set()
         self.top.transient(self.root)
-        self.top.protocol('WM_DELETE_WINDOW', lambda: 1)
+#          self.top.protocol('WM_DELETE_WINDOW', self.close)
 
         self.karte = set(karte)
         self.izroke = set() 
