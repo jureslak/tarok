@@ -4,12 +4,27 @@ from random import shuffle, randint, choice
 from common import *
 
 class Game:
+    """
+    Ta razred implementira stanje igre taroka in njen potek. 
+
+    Pravila so malce spremenjena: najprej vsi izberejo katero igro bi igrali, tisti 
+    z najvišjo igro zmaga. Nato se odpre okno za zalaganje. Vsi igralci nato izvedo 
+    podatke o zalagnju: talon, izbrane katre, tip igre, kdo je igral. Igr traja 12 
+    krogov, pravila so običajna, vendar posebnosti niso implementirane: palčka ne pobere
+    trule in podobno. Igra se v dvojicah ali pa solo, tako se štejejo tudi točke, ki se
+    izpišejo po koncu igre. Če se igralec odloči za novo igro, se točke seštevajo. Točke
+    so enake kot pri navadnem taroke, le da ni zaokrožanja na 5 mest.
+    """
+
     def __init__(self, root):
+        """ 
+        Konstruktor: naredi igralce (3 tipa Igralec in 1 UserIgralec) in premeša vrstni red.
+        """
         self.igralci = {
             'Alenka': Igralec("Alenka"),
             'Bojan': Igralec("Bojan"),
             'Cecilija': Igralec("Cecilija"),
-            'Uporabnik': UserIgralec('user',root),
+            'Uporabnik': UserIgralec(root),
         }
         self.order = list(self.igralci)
         self.total_tocke = {i:0 for i in self.igralci}
@@ -17,6 +32,9 @@ class Game:
 
     #@staticmethod
     def deliRundo(self):
+        """
+        Razdeli karte med igralce.
+        """
         karte = vseKarte()
         shuffle(karte)
 
@@ -28,14 +46,19 @@ class Game:
         self.karte = dict(zip(self.order,map(set,self.k[1:])))
 
     def zacniRundo(self):
+        """
+        Začetek igre, za 1 pomaknemo vrstni red, poberemo igre,
+        radelimo talon, najvišji igralec se založi, vsem damo podatke
+        o igri.
+        """
         self.pobrane = {i:set() for i in self.igralci}
         self.order = self.order[1:]+[self.order[0]]
 
         k = self.k
         tipi = [self.igralci[i].zacniIgro(c) for i,c in zip(self.order,k[1:])]
 
-        print("Igralci izbrali igre")
-        print (tipi)
+#          print("Igralci izbrali igre")
+#          print (tipi)
     
         igra = max(tipi)
         idx = tipi.index(igra)
@@ -48,9 +71,9 @@ class Game:
             talon = list(map(lambda x:[x],k[0]))
 
         iztalona, izroke = self.igralci[glavni].zalozi(self.karte[glavni],talon)
-        print("zalozil izroke",izroke,"iztalona",iztalona)
+#          print("zalozil izroke",izroke,"iztalona",iztalona)
         ostanek = list(set(k[0])-set(iztalona))
-        print('ostanek',ostanek)
+#          print('ostanek',ostanek)
         self.karte[glavni] |= set(iztalona)
         self.karte[glavni] -= set(izroke)
         self.pobrane[glavni] |= set(izroke)
@@ -68,15 +91,19 @@ class Game:
                 self.soigralec = glavni
         self.glavni = glavni
 
-        print (self.karte['Uporabnik'])
+#          print (self.karte['Uporabnik'])
        
-        print ('kazem stanje pred zacetkom')
+#          print ('kazem stanje pred zacetkom')
         for i,n in enumerate(self.order):
             self.igralci[self.order[i]].zacniRedniDel(i,idx,igra,ostanek,iztalona)
         self.curorder = [0,1,2,3]
         self.curorder = self.curorder[idx:] + self.curorder[:idx]
-       
+      
     def krog_before_player(self):
+        """
+        Izvede igro do UserIgralec, nazadnje pokliče njegovo fukcijo vrziKarto.
+        """
+
         self.namizi = []
         curorder = self.curorder
 
@@ -93,6 +120,10 @@ class Game:
                 
 
     def krog_after_player(self, karta):
+        """
+        Izvede igro po UserIgralec, to funkcijo pokliče njegova vrziKarto.
+        Fukcija pobrane karte da na primerne kupčke, sporoči podatke o krogu.
+        """
         curorder = self.curorder
         self.karte['Uporabnik'].remove(karta)
         self.namizi.append((karta, self.curplayer))
@@ -107,7 +138,7 @@ class Game:
             self.namizi.append((vrgel,i))
             self.karte[name].remove(vrgel)
 
-        print(self.namizi)
+#          print(self.namizi)
         zmagal = self.kdo_je_zmagal(self.namizi)
         koncna_miza = [x[0] for x in self.namizi]
         self.pobrane[self.order[zmagal]] |= set(koncna_miza)
@@ -120,6 +151,10 @@ class Game:
         self.curorder = curorder[zidx:] + curorder[:zidx]
 
     def stetje_tock(self):
+        """
+        Fukcija sešteje točke za posamezne igralce in skupine, shrani v primerne
+        spremenljivke za uporabo kasneje. 
+        """
         self.glavni = set([self.glavni, self.soigralec])
         self.ostali = set(self.order) - self.glavni
         
@@ -131,18 +166,27 @@ class Game:
         for i in self.order: self.total_tocke[i] += self.tocke[i]
 
     def najvisja(self, miza, barva):
-            potencialne = [karta for karta in miza if karta[0].barva == barva]
-            if len(potencialne) == 0: return None
-            return max(potencialne, key = lambda x: x[0].vrednost)[1]
+        """ 
+        Pomožna funkcija za ocenjevanje kdo je zmagal eno roko
+        """
+        potencialne = [karta for karta in miza if karta[0].barva == barva]
+        if len(potencialne) == 0: return None
+        return max(potencialne, key = lambda x: x[0].vrednost)[1]
 
     def kdo_je_zmagal(self, miza):
-            ip = self.najvisja(miza, miza[0][0].barva)
-            it = self.najvisja(miza, TAROK)
-            return it if it!=None else ip
+        """ 
+        Vrne indeks igralca, ki je zmagal to roko.
+        """
+        ip = self.najvisja(miza, miza[0][0].barva)
+        it = self.najvisja(miza, TAROK)
+        return it if it!=None else ip
             
 from tkinter import *
 class GUI(Tk):
     def __init__(self):
+        """
+        Konstruktor, naloadamo slike, nastavimo okno, naredimo stanje igre, začnemo igro.
+        """
         super().__init__()
         self["bg"] = 'green'
         self.title('Tarok')
@@ -158,13 +202,19 @@ class GUI(Tk):
         self.mainloop()
 
     def start(self, *args):
-        print("game started")
+        """ 
+        Funkcija razdeli karte, nariše igralce in začne igro.
+        """
+#          print("game started")
         self.krog_num = 0
         self.game.deliRundo()
         self.draw_players()
         self.game.zacniRundo()
 
     def main_game(self):
+        """
+        Se pokliče dvanajstkrat, za vsak krog. Nato pokliče konec igre.
+        """
         self.krog_num += 1
         if self.krog_num > 12:
             self.konec()
@@ -172,12 +222,19 @@ class GUI(Tk):
         self.game.krog_before_player()
 
     def load_images(self):
+        """
+        Prebere slike kart iz datoteke.
+        """
         self.images = {}
         for i in vseKarte():
             self.images[i] = PhotoImage(file='images/{}.ppm'.format(i))
         self.images["BG"] = PhotoImage(file='images/BG.ppm')
 
     def draw_players(self,enabled_buttons=False):
+        """
+        Nariše igralce na zaslon. Parameter Enabled buttons pove ali so karte clickable
+        ali ne, vendar so vedno gumbi, da zgleda enako..
+        """
         for x in self.karte_img: self.karte_img[x].destroy()
 
         uidx = self.game.order.index('Uporabnik')
@@ -205,6 +262,9 @@ class GUI(Tk):
                     self.karte_img[card].place(x=coor[j][0]+i*coor[j][2],y=coor[j][1]+i*coor[j][3])
    
     def click_card(self, card, enabled):
+        """
+        Callback klika na karto: to je karta ki jo igralec vrže.
+        """
         if enabled:
             def f():
                 veljavne = veljavnePoteze(self.game.karte['Uporabnik'],[x for x,y in self.game.namizi])
@@ -215,7 +275,10 @@ class GUI(Tk):
         return f
 
     def konec(self):
-        print ("konec")
+        """
+        Konec igre, izpiše podatke o igri, skupne točke in ponudi novo igro.
+        """
+#          print ("konec")
         self.labels = []
         self.game.stetje_tock()
         konec_l = Label(self, text='KONEC',bg='green',font=('Helvetica',24))
@@ -251,6 +314,9 @@ class GUI(Tk):
         self.restart_but.place(x=900,y=700)
         
     def nova_igra(self):
+        """
+        Začne novo igro, ponastavi spremenljivke.
+        """
         for x in self.endwidgets + self.labels: x.destroy()
         self.restart_but.destroy()
         self.unbind("<Return>")
@@ -259,5 +325,9 @@ class GUI(Tk):
        # self.tocke = Label(self, text=str(self.game.tocke))
        # self.tocke.place(x=400, y=500)
         
-
-g = GUI()
+# da ne kaže morebitnih napak v final verziji (sicer jih ni, ampak vseeno).
+showerrors = False
+try: g = GUI()
+except Exception as e:
+    if showerrors:
+        raise e

@@ -2,9 +2,13 @@
 from common import *
 
 class Igralec:
+    """
+    Razred, ki implementira umetno inteligenco. Funkcije, ki se kličejo so enake in so
+    take kot pri igralcu, ki implementira pogovarjanje z uporabnikom.
+    """
+
     def __init__(self, ime):
         self.ime = ime
-        pass
 
     def zacniIgro(self, karteZaVRoko):
         self.karte = karteZaVRoko

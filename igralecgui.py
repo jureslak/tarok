@@ -4,15 +4,27 @@ from itertools import product
 import time
 
 class UserIgralec:
-    def __init__(self, name, root):
+    """
+    Razred, ki implementira komunikacijo z igralcem. Kličejo se enake fukcije kot pri
+    računalniških igralcih.
+    """
+    def __init__(self, root):
+        """
+        Konstruktor, shranimo si glavno okno za risanje.
+        """
         self.root = root
-        self.name = name
 
     def zacniIgro(self, karte):
+        """
+        Shranimo si karte in uprašamo uporabnika po izbiri igre.
+        """
         self.karte = karte
         return self.izbira_igre()
     
     def bf_creator(self, barva, vrednost):
+        """
+        Callback creator, izbira tipa igre: nastavi izbrano igro.
+        """
         if barva == 'SOLO':
             t = 'S'+vrednost+'X'
         elif barva == 'KRIZ':
@@ -27,6 +39,9 @@ class UserIgralec:
         return f
 
     def izbira_igre(self):
+        """
+        Implementira okno za izbiro igre in vrne uporabnikovo izbiro.
+        """
         self.top = Toplevel(self.root)
         self.top.title('Izbira igre')
         self.top.geometry('300x220+450+400')
@@ -45,11 +60,14 @@ class UserIgralec:
         self.top.wait_window(self.top)
         return self.return_v
 
-    def close(self, *args):
-        self.top.destroy()
-        self.root.destroy()
+#      def close(self, *args):
+#          self.top.destroy()
+#          self.root.destroy()
 
     def zalozi(self, karte, talon):
+        """
+        Implementira okno za zalaganje in vrne uporabnikovo izbiro.
+        """
         self.top = Toplevel(self.root)
         self.top.title('Zalaganje')
         self.top['bg']='green'
@@ -76,6 +94,9 @@ class UserIgralec:
         return self.iztalona, self.izroke
 
     def zaloziKarto(self, card):
+        """
+        Callback creator, karto da na kupček založenih kart.
+        """
         def f(*args):
             if len(self.izroke) < len(self.talon[0]):
                 if card not in [Karta(SRCE,14),Karta(KARO,14),Karta(PIK,14),Karta(KRIZ,14),Karta(TAROK,1),Karta(TAROK,21),Karta(TAROK,22)]:
@@ -85,6 +106,9 @@ class UserIgralec:
         return f
 
     def take(self, i):
+        """
+        Callback creator, vzame ta kupcek kart iz talona. Morebitnega starega da nazaj.
+        """
         def f(*args):
             if self.iztalona:
                 self.talon.append(list(self.iztalona))
@@ -96,6 +120,10 @@ class UserIgralec:
         return f
  
     def putback(self, card):
+        """
+        Callback creator, karto da nazaj v roko.
+        """
+
         def f(*args):
             self.izroke.remove(card)
             self.karte.add(card)
@@ -103,6 +131,9 @@ class UserIgralec:
         return f
 
     def redraw(self):
+        """ 
+        Narise okno za zalaganje, se kliče ko se kaj spremeni.
+        """
 
         for x in self.izroke_but: self.izroke_but[x].destroy()
         for x in self.talon_but: self.talon_but[x].destroy()
@@ -127,10 +158,16 @@ class UserIgralec:
 #          print ("iz roke:", self.izroke)
 
     def lezim(self):
+        """
+        Ce je vse v redu, vrne izbrane karte uporabnika.
+        """
         if len(self.izroke) == len(self.talon[0]) and len(self.iztalona) > 0:
             self.top.destroy()
 
     def zacniRedniDel(self,idx,glavni,tip,ostanek,pobrane):
+        """
+        Prikaže uporabniku vse podatke o zalaganju in klicajnu iger.
+        """
         self.l = Label(self.root, text="Igra {}, tip igre: {}.".format(self.root.game.order[glavni],tip.text()), font=('Helvetica',16),bg='green')
         self.l1 = Label(self.root, text='Izbrane karte', font=('Helvetica',14), bg='green')
         self.l2 = Label(self.root, text='Ostale karte', font=('Helvetica',14), bg='green')
@@ -139,8 +176,8 @@ class UserIgralec:
         self.l1.place(x=280,y=290)
         self.l2.place(x=600,y=290)
 
-        print (ostanek)
-        print (pobrane)
+#          print (ostanek)
+#          print (pobrane)
         
         self.talon_lab = []
         for j, card in enumerate(ostanek):
@@ -160,6 +197,9 @@ class UserIgralec:
         self.root.draw_players()
 
     def startgame(self, *args):
+        """
+        Callback, uporabnik potrdu da je videl podatke, začne se igra
+        """
         self.l.destroy()
         self.l1.destroy()
         self.l2.destroy()
@@ -170,11 +210,14 @@ class UserIgralec:
         self.root.main_game()
 
     def vrziKarto(self, karte, namizi, prvi):
-        print ("mecem karto")
+        """
+        Uporabniku nariše stanje na mizi in počaka, da uporabnik izbere karto.
+        """
+#          print ("mecem karto")
         self.root.draw_players(True)
-        print (self.root.draw_order)
+#          print (self.root.draw_order)
         self.na_vrsti = Label(self.root, text=': na vrsti ste.',bg='green',font=('Helvetica',16))
-        self.na_vrsti.place(x=500,y=750)
+        self.na_vrsti.place(x=510,y=750)
         self.ontable = []
         for card, pl in zip(namizi, self.root.game.curorder):
             didx = self.root.draw_order.index(self.root.game.order[pl])
@@ -182,6 +225,9 @@ class UserIgralec:
             self.ontable[-1].place(**self.root.coor[didx])
 
     def konecKroga(self, zmagal, prvi, zmagovalec, namizi):
+        """ 
+        Uporabniku nariše stanje po koncu kroga, počaka da potrdi.
+        """
         self.na_vrsti.destroy()
         for card, pl in zip(namizi, self.root.game.curorder):
             didx = self.root.draw_order.index(self.root.game.order[pl])
@@ -198,6 +244,9 @@ class UserIgralec:
         self.nextround_but.place(x=900,y=700)
 
     def next_round(self, *args):
+        """
+        Callback, uporabnik potrdi stanje po koncu kroga.
+        """
         self.nextround_but.destroy()
         self.message_label.destroy()
         for x in self.ontable: x.destroy()

@@ -1,5 +1,9 @@
 import collections
 
+"""
+Modul, ki implementira skupne stvari za vse razrede, katre, tip igre in podobne reči.
+"""
+
 TAROK, KARO, SRCE, KRIZ, PIK, NEZNANA = 0, 1, 2, 3, 4, -1
 
 def barvaVString(barva):
@@ -8,8 +12,10 @@ def barvaVString(barva):
 def stringVBarvo(s):
     return {'T':TAROK, 'K':KARO, 'S':SRCE, 'R':KRIZ, 'P':PIK, 'X':NEZNANA}.get(s,-2)
 
-# vidi: Karta implementira __eq__ in __hash__ iz BARVE/VREDNOSTI, tko da se bodo dogajale grde stvari
-#       ce spreminjas barvo/vrednost medtem ko je uporabljena npr. za key!
+"""
+pozor: Karta implementira __eq__ in __hash__ iz BARVE/VREDNOSTI, tko da se bodo dogajale grde stvari
+       ce spreminjas barvo/vrednost medtem ko je uporabljena npr. za key!
+"""
 class Karta:
     def __init__(self, *args):
         if len(args) == 2:
