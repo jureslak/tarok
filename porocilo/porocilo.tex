@@ -7,8 +7,6 @@
 
 \begin{document}
 
-\thispagestyle{empty}
-
 \begin{center}
 {\bf \Huge TAROK} \\[24pt]
 {\Large Programski projekt pri predmetu programiranje} \\[12pt]
@@ -17,7 +15,7 @@
 \end{center}
 
 \tableofcontents
-\newpage
+%\newpage
 
 \section{Uvod}
 Cilj projekta je implementirati igro s kartami tarok za 4 igralce. Uporabnik bi igral s tremi igralci, ki jih igra računalnik.
@@ -42,12 +40,16 @@ Pri igralcih, ki jih igra računalnik (razreda \texttt{Igralec}) te metode vrnej
 
 Vsi razredi imajo veliko skupnih elementov, na primer definicije kart in tipov igre. Take stvari sem zapakiral v knjižnjico \texttt{common}, ki  si jo delijo vsi razredi.
 
-Celotna koda projekta je objavljena in prosto dostopna na \url{http://github.com/jureslak/tarok/}.
 
 \section{Delovanje}
-Program najprej premeša vrstni red igralcev, nato razdeli karte in da igralcem možnost izbire igre.
+Program najprej premeša vrstni red igralcev, nato razdeli karte in da igralcem možnost izbire igre. Nato se igralec z najvišjo vrednostjo igre založi, 
+pravila za zalaganje so enaka kot pri navadnem taroku. Nato se uporabniku pokažejo informacije o zalaganju in odigra se 12 krogov igre. Po vsakem krogu uporabnik izve, kdo je pobral trenuten krog. Na koncu računalnik sešteje točke kart in prišteje vrednost igre ter te točke napiše igralcu ali igralcema, ki so v tej igri igrali. Uporabniku ponudi novo igro, pri čemer rezultate dosedanjih iger sešteva.
 
 \section{Sklep}
-asdf
+Prostora za izboljšavo je še veliko, lahko bi se bolj dosledno držali pravil taroka ali pa implementirali še kakšno ``posebno'' igro, kot na primer valata ali berača.
+To ne bi bilo zelo težko integrirati v program, vendar bi bilo veliko dela, tako da tega nisem implementiral. Prav tako igre ne bi bilo težko igre razširiti na več igralcev.
+
+Celotna koda projekta je objavljena in prosto dostopna na \url{http://github.com/jureslak/tarok/}.
+
 
 \end{document}
